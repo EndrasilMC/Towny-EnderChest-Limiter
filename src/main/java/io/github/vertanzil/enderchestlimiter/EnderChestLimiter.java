@@ -3,7 +3,6 @@ import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.object.*;
 import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
 import org.bukkit.Material;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,8 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.logging.Level;
-
-
 
 public final class EnderChestLimiter  extends JavaPlugin implements Listener {
     @Override
@@ -26,15 +23,13 @@ public final class EnderChestLimiter  extends JavaPlugin implements Listener {
         getLogger().log(Level.INFO, "E.C.L has been disabled!");
     }
 
-
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
-
         Town town = TownyAPI.getInstance().getTown(player.getLocation());
         Resident resident = TownyAPI.getInstance().getResident(player);
 
-
+        //IF PLAYER IS OWN TOWN.
         if (event.getBlockPlaced().getType() == Material.ENDER_CHEST) {
             //CHECK IF THE PLAYER IS IN THEIR OWN TOWN
             if (town != null && resident.hasTown() && resident.getTownOrNull().equals(town)) {
@@ -54,7 +49,6 @@ public final class EnderChestLimiter  extends JavaPlugin implements Listener {
                 boolean bBuild = PlayerCacheUtil.getCachePermission(player, event.getBlock().getLocation(), event.getBlock().getType(), TownyPermission.ActionType.BUILD);
 
                 if (bBuild) {
-
                     if (player.hasPermission("ecl.bypass") || player.isOp()) {
                         event.setCancelled(false);
                     } else {
@@ -73,9 +67,9 @@ public final class EnderChestLimiter  extends JavaPlugin implements Listener {
                     event.setCancelled(false);
                 } else {
                     event.setCancelled(true);
+                    player.sendMessage("[E.C.L]" + " " + "You cannot place ender chests outside of a bank plot.");
                 }
             }
         }
     }
-
 }
