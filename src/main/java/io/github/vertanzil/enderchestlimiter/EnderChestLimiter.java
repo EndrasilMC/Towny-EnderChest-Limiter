@@ -1,19 +1,18 @@
 package io.github.vertanzil.enderchestlimiter;
 import com.palmergames.bukkit.towny.TownyAPI;
-import com.palmergames.bukkit.towny.object.Resident;
-import com.palmergames.bukkit.towny.object.Town;
-import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.palmergames.bukkit.towny.object.*;
+import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
 import org.bukkit.Material;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.logging.Level;
 
-import static org.bukkit.Bukkit.getLogger;
+
 
 public final class EnderChestLimiter  extends JavaPlugin implements Listener {
     @Override
@@ -30,28 +29,53 @@ public final class EnderChestLimiter  extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBlockPlace(BlockPlaceEvent event) {
-        getLogger().log(Level.INFO, event.getBlockPlaced().getType().toString());
         Player player = event.getPlayer();
 
         Town town = TownyAPI.getInstance().getTown(player.getLocation());
         Resident resident = TownyAPI.getInstance().getResident(player);
 
-        if (event.getBlockPlaced().getType() == Material.ENDER_CHEST) {
 
+        if (event.getBlockPlaced().getType() == Material.ENDER_CHEST) {
+            //CHECK IF THE PLAYER IS IN THEIR OWN TOWN
             if (town != null && resident.hasTown() && resident.getTownOrNull().equals(town)) {
-                if (town.getTownBlock(WorldCoord.parseWorldCoord(event.getPlayer().getLocation())).getTypeName().toLowerCase().contains("bank")) {
-                    event.setCancelled(false);
+
+                for (TownBlock tb : town.getTownBlocks()) {
+                    if (tb.getType() == TownBlockType.BANK) {
+                        event.setCancelled(false);
+                    } else {
+                        event.setCancelled(true);
+                        player.sendMessage("[E.C.L]" + " " + "You cannot place ender chests outside of a bank plot.");
+                    }
                 }
             }
-            //NO TOWN
+
+            //CHECK IF PLAYER IS IN ANOTHER PERSONS TOWN.
             if (town != null && town.hasResident(player.getName())) {
+                boolean bBuild = PlayerCacheUtil.getCachePermission(player, event.getBlock().getLocation(), event.getBlock().getType(), TownyPermission.ActionType.BUILD);
+
+                if (bBuild) {
+
+                    if (player.hasPermission("ecl.bypass") || player.isOp()) {
+                        event.setCancelled(false);
+                    } else {
+                        for (TownBlock tb : town.getTownBlocks()) {
+                            if (tb.getType() == TownBlockType.BANK) {
+                                event.setCancelled(false);
+                            } else {
+                                event.setCancelled(true);
+                                player.sendMessage("[E.C.L]" + " " + "You cannot place ender chests outside of a bank plot.");
+                            }
+                        }
+                    }
+                }
+            } else {
                 if (player.hasPermission("ecl.bypass") || player.isOp()) {
                     event.setCancelled(false);
                 } else {
                     event.setCancelled(true);
-                    player.sendMessage("[E.C.L]" + " " + "You cannot place ender chests outside of a bank plot.");
                 }
             }
         }
     }
+
 }
