@@ -1,0 +1,4 @@
+name: EnderChestLimiter
+version: '${project.version}'
+main: io.github.vertanzil.enderchestlimiter.EnderChestLimiter
+api-version: '1.21'
